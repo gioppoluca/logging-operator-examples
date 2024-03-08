@@ -1,0 +1,28 @@
+apiVersion: logging.banzaicloud.io/v1beta1
+kind: Flow
+metadata:
+  name: log-flow-httpd
+  namespace: your-namespace
+spec:
+  filters:
+    - parser:
+        parse:
+          patterns:
+            - format: apache2
+            - format: apache_error
+            - format: none
+          type: multi_format
+        remove_key_name_field: true
+        reserve_data: true
+        # Keep original event time in parsed result since we want to have the time of the log
+        reserve_time: true
+  match:
+    - select:
+        container_names:
+          - httpd
+        labels:
+          # Use this label on all the httpd pods to have this Flow collect all logs
+          label.on.the.pod: httpd
+  # Send logs to the output named log-output-httpd
+  localOutputRefs:
+    - log-output-httpd
